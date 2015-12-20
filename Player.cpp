@@ -4,7 +4,6 @@
 
 #define PLAYER1 0
 #define PLAYER2 0
-#define DICENUM 46
 #define TREELEVELS 2
 //#define MUDUL 555
 
@@ -146,7 +145,8 @@ pair<int,int> Player::chooseDice()
 	{
 		//p = chooseFirstDiceFromBag();
 		man->val->doneCumputingMoves = false;
-		if (doSwap == false) isWhitePlayer ? theChoise = chooseWhatToDoWhiteStart() : theChoise = chooseWhatToDoBlackStart();
+		if (doSwap == false) 
+			theChoise = chooseWhatToDo();
 		
 		if(theChoise)
 		{
@@ -179,7 +179,7 @@ pair<int,int> Player::chooseDice()
 			}
 			else// the choise == null
 			{
-				if (! PLAYINGAGAINSMATANDROTEM)  p = sacrificeADice(); 
+				if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
 			}
 		}
 		
@@ -327,130 +327,37 @@ pair<int,int> Player::chooseMove()
 	return p;
 }
 
-Node* Player::chooseWhatToDoWhiteStart()
-{	
-	vector<Node *>().swap(root->children);
-	free(root);
-	root= NULL;
+Node* Player::chooseWhatToDo()
+{
+	delete(root);
+	root = NULL;
+	bool is_white = man->bIsWhiteTurn;
 	allTreeNodes = 1;
-	getRemainingDice(a_bag,man->pBlack->a_bag);
-	for (int i = 0; i < 25; i++) {	boardForLevel[i] = man->b->a_rboard[i];	} 
-	root = new Node(boardForLevel ,man->b->a_mdl[1],man->b->a_mdl[0], pair<int,int>(-1,-1));
-	root->whiteLevel = false;
-	buildOneLevel(root);
-	//cout << "first level: "<< allTreeNodes<<endl;
-	if (TREELEVELS > 1)
-	{/*int a = 1000000;*/
-		swapBagForDiffrentLevel(0);
-		//for (int i = 0; i < 25; i++) {	boardForLevel[i] = man->b->a_rboard[i];	} 
-		for(Node* child : root->children)
-		{
-			/*if(allTreeNodes > a  )
-			{
-				a+=900000;
-				cout << " ";
-			}*/
+	getRemainingDice(a_bag, is_white ? man->pWhite->a_bag : man->pBlack->a_bag);
+	for (int i = 0; i < 25; i++) { boardForLevel[i] = is_white ? man->b->a_rboard[i]: man->b->a_board[i]; }
+	// a_mdl[0] is white middle
+	root = new Node(boardForLevel, man->b->a_mdl[is_white], man->b->a_mdl[!is_white], pair<int, int>(-1, -1));
+	root->whiteLevel = !is_white;
+	build_tree(TREELEVELS);
 
-			//memcpy( child->m_board,boardForLevel,sizeof(int) *25);
-			buildOneLevel(child);	
-		//	memcpy(boardForLevel ,root->m_board,sizeof(int) *25);
-		}
-	}
-	//cout << "second level: "<< allTreeNodes<<endl;
-	return root->children.size() > 0 ? root->children.at(mudul%(root->children.size())) : NULL;
+	return root->children.size() > 0 ? root->children.at(mudul % (root->children.size())) : NULL;
 }
 
-Node* Player::chooseWhatToDoBlackStart()
+void Player::build_tree(int depth)
 {
-	vector<Node *>().swap(root->children);
-	free(root);
-	root= NULL;
-	allTreeNodes = 1;
-	getRemainingDice(a_bag,man->pWhite->a_bag);
-	for (int i = 0; i < 25; i++) {	boardForLevel[i] = man->b->a_board[i];}
-	root = new Node(boardForLevel ,man->b->a_mdl[0],man->b->a_mdl[1], pair<int,int>(-1,-1));
-	root->whiteLevel = true;
 	buildOneLevel(root);
-	//cout << "first level: "<< allTreeNodes<<endl;
-	if (TREELEVELS > 1)
+	if (depth > 1)
 	{
 		swapBagForDiffrentLevel(1);
-		//for (int i = 0; i < 25; i++) {	boardForLevel[i] = man->b->a_board[i];	} 
-		for(Node* child : root->children)
+		for (Node* child : root->children)
 		{
-		//	memcpy(boardForLevel ,child->m_board,sizeof(int) *25);
-			buildOneLevel(child);	
-			//memcpy(boardForLevel ,root->m_board,sizeof(int) *25);
+			a_remainingDice[child->m_dice.first][child->m_dice.second]--;
+			buildOneLevel(child);
+			a_remainingDice[child->m_dice.first][child->m_dice.second]++;
+
+			//delete(child);
 		}
 	}
-//	cout << "second level: "<< allTreeNodes<<endl;	
-	return root->children.size() > 0 ? root->children.at(mudul%(root->children.size())) : NULL;
-}
-
-
-pair<int,int> Player::chooseFirstDiceFromBag() //computer choose dice primitvly
-{
-	if (n_DiceInBag == 0)
-	{
-		man->gameOver("game over . no more dice to play","its a Tie !!! " );
-	}
-	for (int i = 0; i < DICENUM; i++)
-	{
-		if (a_bag[i].first != -1) 
-			return a_bag[i];
-	}
-	return pair<int,int>(-2,0);
-}
-
-pair<int,int> Player::moveLongestPiece() //computer choose move primitvly
-{
-	pair<int,int> p(-2,0);
-	int* aBoard ;
-	bool isWhite = man->bIsWhiteTurn;
-	man->bIsWhiteTurn ? aBoard = man->b->a_board : aBoard = man->b->a_rboard;
-	int onMdl = man->b->a_mdl[!(man->bIsWhiteTurn)];
-	
-	if (round != man->b->n_round)
-	{
-		round = man->b->n_round;
-		lastTry = 1;
-	}
-	if (turn != man->turns)
-	{
-		turn = man->turns;
-		lastTry = 1;
-	}
-
-	if (onMdl)
-	{
-		p.first = *(man->currentDice);
-		p.second = 0;
-		
-		if(!isWhite)
-		{
-			p.first = man->b->a_moveTransfer[p.first];
-		}
-		return p;
-	}
-	for (int i = lastTry; i <= 24; i++)
-	{
-		if (aBoard[i] > 0) 
-		{
-			if(isWhite)
-			{
-				p.first = i;
-				p.second = p.first + *man->currentDice;
-			}
-			else
-			{
-				p.first = man->b->a_moveTransfer[i];
-				p.second = p.first - *man->currentDice;
-			}
-			lastTry= i +1 ;
-			return p;
-		}
-	}
-	return p;
 }
 
 void Player::initPointers()
@@ -462,22 +369,12 @@ void Player::initPointers()
 
 void Player::buildOneLevel(Node* levelFather)
 {
-	/*if (levelFather->whiteLevel) 
+	// reverse the fathers board and middles and bags?
+	for (int i = 0; i < 25; i++)
 	{
-		for (int i = 0; i < 25; i++)
-		{
-			updateNode->m_board[a_moveTransfer[i]] = levelFather->m_board[i]*(-1);
-		}
+		boardForLevel[a_moveTransfer[i]] = levelFather->m_board[i]* (-1); 
+		updateNode->m_board[a_moveTransfer[i]] = levelFather->m_board[i]* (-1); 
 	}
-	else 
-	{*/
-		for (int i = 0; i < 25; i++)
-		{
-			boardForLevel[a_moveTransfer[i]] = levelFather->m_board[i]* (-1); 
-			updateNode->m_board[a_moveTransfer[i]] = levelFather->m_board[i]* (-1); 
-		}
-		//memcpy(updateNode->m_board ,levelFather->m_board,sizeof(int) *25);
-	/*}*/
 	updateNode->mdlMe = levelFather->mdlHim;
 	
 	for (int i = 1; i < 7; i++)
@@ -486,11 +383,6 @@ void Player::buildOneLevel(Node* levelFather)
 		{
 			if (bagForLevel[i][j] > 0) 
 			{
-				/*if (i==6 && j==6)
-				{
-					cout<<"hey";
-				}*/
-
 				man->_dice = pair<int,int>(i,j);	
 				bool x = false;
 				bool isDubel = (i == j);
@@ -504,7 +396,6 @@ void Player::buildOneLevel(Node* levelFather)
 						man->turns = 4;
 						searchDoubleMove(levelFather, i);
 					}
-					
 				}
 				else
 				{
@@ -686,6 +577,7 @@ Node::Node(int* array , int amdlMe , int amdlHim ,pair<int,int> currentDice)
 	m_dice = currentDice;
 	m_board[25];
 	memcpy(m_board,array, sizeof(int) * 25);
+	heurristic_val = 0;
 	/*whatMoveAmI1 = " ";
 	whatMoveAmI2 = " ";
 	whatMoveAmI3 = " ";
@@ -699,7 +591,7 @@ Node::~Node(void)
 {
 }
 
-void Player::getRemainingDice(pair<int,int>* whiteBag, pair<int,int>* blackBag)
+void Player::getRemainingDice(pair<int,int>* my_bag, pair<int,int>* his_bag)
 {
 	int arg1;
 	int arg2;
@@ -713,21 +605,19 @@ void Player::getRemainingDice(pair<int,int>* whiteBag, pair<int,int>* blackBag)
 		}
 	}
 
-
-
 	for (int i = 0; i < DICENUM; i++)
 	{
-		if ((whiteBag[i].first!=-1))
+		if ((my_bag[i].first!=-1))
 		{
-			if (whiteBag[i].first >whiteBag[i].second) 
+			if (my_bag[i].first >my_bag[i].second) 
 			{
-				arg1 = whiteBag[i].second;
-				arg2 = whiteBag[i].first;
+				arg1 = my_bag[i].second;
+				arg2 = my_bag[i].first;
 			}
 			else
 			{
-				arg2 = whiteBag[i].second;
-				arg1 = whiteBag[i].first;
+				arg2 = my_bag[i].second;
+				arg1 = my_bag[i].first;
 			}
 			a_remainingDice[arg1][arg2]++;
 			bagForLevel[arg1][arg2]++;
@@ -736,17 +626,17 @@ void Player::getRemainingDice(pair<int,int>* whiteBag, pair<int,int>* blackBag)
 	
 		for (int i = 0; i < DICENUM; i++)
 	{
-		if ((blackBag[i].first!=-1))
+		if ((his_bag[i].first!=-1))
 		{
-			if (blackBag[i].first >blackBag[i].second) 
+			if (his_bag[i].first >his_bag[i].second) 
 			{
-				arg1 = blackBag[i].second;
-				arg2 = blackBag[i].first;
+				arg1 = his_bag[i].second;
+				arg2 = his_bag[i].first;
 			}
 			else
 			{
-				arg2 = blackBag[i].second;
-				arg1 = blackBag[i].first;
+				arg2 = his_bag[i].second;
+				arg1 = his_bag[i].first;
 			}
 			a_remainingDiceOpponent[arg1][arg2]++;
 
@@ -759,27 +649,13 @@ return;
 void Player::swapBagForDiffrentLevel(bool toCurrent)
 {
 	if(toCurrent)
-	{
 		for (int i = 0; i < 7; i++)
-		{
 			for (int j = 0; j < 7; j++)
-			{
 				bagForLevel[i][j] = a_remainingDice[i][j]; 
-			}
-		} 
-	}
 	else
-	{
 		for (int i = 0; i < 7; i++)
-		{
 			for (int j = 0; j < 7; j++)
-			{
 				bagForLevel[i][j] = a_remainingDiceOpponent[i][j]; 
-			}
-		} 
-	}
-
-
 }
 
 void Player::destroyLevel(Node* father)
@@ -789,13 +665,10 @@ void Player::destroyLevel(Node* father)
 	{
 		if (temp->children.size() > 0) 
 			destroyLevel(temp);
-	//	vector<Node *>().swap(temp->children);
-		free(temp);
+		delete(temp);
 		temp = NULL;
 		Player::memoryTrace--;
 	}
-	/*if (father == root)
-		vector<Node *>().swap(root->children);*/
 }
 
 int Player::chekcDoubleEntry(int* tempBoard, int* tempMdlme, int* tempMdlhim, int moveStart, int tempDice, bool* pin , bool* ate)
@@ -906,8 +779,7 @@ pair<int,int> Player::sacrificeADice()
 
 Node * Player::halfMoveChooseWhatToDoWhiteStart() 
 {
-	vector<Node *>().swap(root->children);
-	free(root);
+	delete(root);
 	root= NULL;
 	allTreeNodes = 1;
 	getRemainingDice(a_bag,man->pBlack->a_bag);
@@ -919,8 +791,7 @@ Node * Player::halfMoveChooseWhatToDoWhiteStart()
 
 Node * Player::halfMoveChooseWhatToDoBlackStart() 
 {
-	vector<Node *>().swap(root->children);
-	free(root);
+	delete(root);
 	root= NULL;
 	allTreeNodes = 1;
 	getRemainingDice(a_bag,man->pWhite->a_bag);

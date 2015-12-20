@@ -44,13 +44,13 @@ void Manager::ResetInstance()
 
 Manager::~Manager(void)
 {
-	free(pWhite->root);
-	free(pBlack->root);
-	free(pWhite->updateNode);
-	free(pBlack->updateNode);
+	delete(pWhite->root);
+	delete(pBlack->root);
+	delete(pWhite->updateNode);
+	delete(pBlack->updateNode);
 
-	free(pWhite);
-	free(pBlack);
+	delete(pWhite);
+	delete(pBlack);
 }
 
 void Manager::showHelp()
@@ -235,13 +235,13 @@ void Manager::initPointersOfMembers() /// once ctor of manager called we have cl
 
 void Manager::fakeDtor()
 {
-	free(pWhite->root);
-	free(pBlack->root);
-	free(pWhite->updateNode);
-	free(pBlack->updateNode);
+	delete(pWhite->root);
+	delete(pBlack->root);
+	delete(pWhite->updateNode);
+	delete(pBlack->updateNode);
 
-	free(pWhite);
-	free(pBlack);
+	delete(pWhite);
+	delete(pBlack);
 
 }
 

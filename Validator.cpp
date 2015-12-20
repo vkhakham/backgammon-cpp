@@ -2,7 +2,6 @@
  
 
 Validator* Validator::v_instance = 0;
-#define DICENUM 46
 
 Validator* Validator::instance()
 {
@@ -56,7 +55,7 @@ void Validator::flushMsg()
 //dice
 bool Validator::checkDice()
 {
-	if((man->currentPlayer->_isHuman == 0) && PLAYINGAGAINSMATANDROTEM  && (man->_dice.first == -5)) //player dont have any dice to play
+	if((man->currentPlayer->_isHuman == 0) && PLAYINGAGAINSMAYANDROTEM  && (man->_dice.first == -5)) //player dont have any dice to play
 	{
 		man->turns = 0;
 		msg1 = "Computer cant play anything";

@@ -4,7 +4,6 @@ using namespace std;
 
 
 Board* Board::b_instance = 0;
-#define DICENUM 46
 
 Board::Board()
 {

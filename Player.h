@@ -20,13 +20,11 @@ public:
 	void initPointers();
 	pair<int,int> chooseMove();
 	pair<int,int> chooseDice();
-	pair<int,int> chooseFirstDiceFromBag();
-	pair<int,int> moveLongestPiece();
 	~Player(void);
 
 	int n_DiceInBag;
 	string s_color;
-	pair<int,int> a_bag[46];
+	pair<int,int> a_bag[DICENUM];
 	bool _isHuman;
 	int lastTry;
 	int round;
@@ -50,8 +48,10 @@ public:
 	bool doSwapMove;
 	pair<int,int> chosenMove;
 	pair<int,int> chosenDice;
-	Node* chooseWhatToDoWhiteStart();
-	Node* chooseWhatToDoBlackStart();
+	Node* chooseWhatToDo();
+
+	void build_tree(int depth);
+
 	void buildOneLevel(Node *);
 	void searchRegMove(Node *,pair<int,int>& );
 	void searchDoubleMove(Node *,int& );
@@ -85,10 +85,8 @@ public:
 	pair<int,int> m_move2;
 	pair<int,int> m_move3;
 	pair<int,int> m_move4;
-	/*string whatMoveAmI1; //regular , going down , removing piece
-	string whatMoveAmI2;
-	string whatMoveAmI3;
-	string whatMoveAmI4;*/
+
+	int heurristic_val;
 	int mdlMe;
 	int mdlHim;
 	int m_board[25];

@@ -2,9 +2,10 @@
 #define _MANAGER_H_
 #pragma once
 
-#define PLAYINGAGAINSMATANDROTEM 0
-#define HOWMANYGAMESINAROW 2
+#define PLAYINGAGAINSMAYANDROTEM 0
+#define HOWMANYGAMESINAROW 10
 #define MUDUL 46
+#define DICENUM 46
 
 
 #include <iostream>
