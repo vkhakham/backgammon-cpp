@@ -186,29 +186,10 @@ pair<int,int> Player::chooseDice()
 				p = theChoise->m_dice;
 			}
 		}
-		//else // the choise == null - no children to root.
-		//{
-		//	isWhitePlayer ? theChoise = halfMoveChooseWhatToDoWhiteStart() : theChoise = halfMoveChooseWhatToDoBlackStart(); 
-		//	if (theChoise )
-		//	{
-		//		if (doSwap)
-		//		{
-		//			p.first = theChoise->m_dice.second;
-		//			p.second= theChoise->m_dice.first;
-		//			doSwap = false;
-		//		}
-		//		else
-		//		{
-		//			p = theChoise->m_dice;
-		//		}
-		//	}
-		//	else// the choise == null
-		//	{
-		//		if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
-		//	}
-		//}
-		
-
+		else // the choise == null - no children to root.
+		{
+				if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
+		}
 	}
 	man->val->doneCumputingMoves = true;
 	return p; //p == -5,-5  default
@@ -354,7 +335,6 @@ pair<int,int> Player::chooseMove()
 
 Node* Player::chooseWhatToDo()
 {
-	double max = numeric_limits<double>::lowest();
 	delete(player_root);
 	player_root = NULL;
 	bool is_white = man->bIsWhiteTurn;
@@ -366,11 +346,12 @@ Node* Player::chooseWhatToDo()
 	player_root->whiteLevel = !is_white;
 	build_tree(player_root, man->depth_level, true, true);
 
+	if (player_root->children.empty())
+		return NULL;	// no moves were found
 	//return root->children.size() > 0 ? root->children.at(mudul % (root->children.size())) : NULL;
 	for (Node* child : player_root->children)
 		if (child->heurristic_val == player_root->heurristic_val)
 			return child;
-	assert(0);
 }
 
 void Player::build_tree(Node* root, int depth, bool my_move, bool minmax)
@@ -380,6 +361,9 @@ void Player::build_tree(Node* root, int depth, bool my_move, bool minmax)
 
 	if (root->children.empty())
 		buildhalfLevel(root);
+
+	if (root->children.empty())
+		return;
 
 	for (Node* child : root->children)
 	{
@@ -392,7 +376,7 @@ void Player::build_tree(Node* root, int depth, bool my_move, bool minmax)
 		else  // tree leafs - use heuristics and pass values up the tree
 		{
 			man->strategy_ptr->evaluate_node(child);
-			if (minmax) 
+			if (minmax) /* minimax or alpha beta */
 			{
 				/* minmax */
 				if ((my_move && child->heurristic_val > root->heurristic_val) ||
@@ -404,7 +388,8 @@ void Player::build_tree(Node* root, int depth, bool my_move, bool minmax)
 				return;
 			}
 		}
-		delete(child);
+		if (root != player_root)	/*don't delete first level*/
+			delete(child);
 	}
 }
 
@@ -464,7 +449,12 @@ void Player::buildOneLevel(Node* levelFather)
 
 void Player::buildhalfLevel(Node* root)
 {
-	memcpy(updateNode->m_board ,root->m_board,sizeof(int) *25);
+	// reverse the fathers board and middles and bags?
+	for (int i = 0; i < 25; i++)
+	{
+		boardForLevel[a_moveTransfer[i]] = root->m_board[i] * (-1);
+		updateNode->m_board[a_moveTransfer[i]] = root->m_board[i] * (-1);
+	}
 	updateNode->mdlMe = root->mdlHim;
 	
 	for (int i = 1; i < 7; i++)
@@ -724,11 +714,8 @@ void Player::swapBagForDiffrentLevel(bool toCurrent)
 
 void Player::destroyLevel(Node* father)
 {
-	
 	for(Node* temp : father->children)
 	{
-		if (temp->children.size() > 0) 
-			destroyLevel(temp);
 		delete(temp);
 		temp = NULL;
 		Player::memoryTrace--;
