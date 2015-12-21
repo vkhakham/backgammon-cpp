@@ -6,8 +6,6 @@ Manager* Manager::m_instance = 0;
 
 Manager::Manager(void)
 {
-	
-
 	bIsWhiteTurn = true;
 	bSwapDice = false;
 	bCurrentDiceDubel = false;
@@ -27,6 +25,8 @@ Manager::Manager(void)
 
 	games = HOWMANYGAMESINAROW;
 	mudul = MUDUL;
+	strategy_ptr = new strategy();
+	depth_level = TREELEVELS;
 }
 
 Manager* Manager::instance()
@@ -44,8 +44,8 @@ void Manager::ResetInstance()
 
 Manager::~Manager(void)
 {
-	delete(pWhite->root);
-	delete(pBlack->root);
+	delete(pWhite->player_root);
+	delete(pBlack->player_root);
 	delete(pWhite->updateNode);
 	delete(pBlack->updateNode);
 
@@ -128,7 +128,7 @@ void Manager::runGame()
 		//system("pause");
 		b->turnPrintAllocationPrints = true;
 		b->printBoard(val->msg1 , val->msg2 , val->msg3, val->msg4);
-		currentPlayer->destroyLevel(currentPlayer->root);
+		currentPlayer->destroyLevel(currentPlayer->player_root);
 		cout << "memoryTrace : " << Player::memoryTrace << endl;
 		b->turnPrintAllocationPrints = false;
 		b->n_round++;
@@ -173,7 +173,7 @@ void Manager::playDice()
 	}
 	if (b->a_out[0] >= 15 || b->a_out[1] >= 15)	
 	{
-		currentPlayer->destroyLevel(currentPlayer->root);
+		currentPlayer->destroyLevel(currentPlayer->player_root);
 		gameOver("game over ",currentPlayer->s_color + " Wins !!! ");
 	}
 }
@@ -235,8 +235,8 @@ void Manager::initPointersOfMembers() /// once ctor of manager called we have cl
 
 void Manager::fakeDtor()
 {
-	delete(pWhite->root);
-	delete(pBlack->root);
+	delete(pWhite->player_root);
+	delete(pBlack->player_root);
 	delete(pWhite->updateNode);
 	delete(pBlack->updateNode);
 

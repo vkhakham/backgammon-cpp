@@ -43,14 +43,14 @@ public:
 
 	static int memoryTrace;
 
-	Node* root;
+	Node* player_root;
 	bool doSwap;
 	bool doSwapMove;
 	pair<int,int> chosenMove;
 	pair<int,int> chosenDice;
 	Node* chooseWhatToDo();
 
-	void build_tree(int depth);
+	void build_tree(Node* root, int depth, bool my_move, bool minmax);
 
 	void buildOneLevel(Node *);
 	void searchRegMove(Node *,pair<int,int>& );
@@ -62,13 +62,11 @@ public:
 	void revDubleChanges(int ,bool* , int* ,int ,int* ,int * , int  );
 	bool stucked;
 
-	Node *halfMoveChooseWhatToDoWhiteStart();
-	Node *halfMoveChooseWhatToDoBlackStart();
 	pair<int,int> sacrificeADice();
 
-	void buildhalfLevel();
-	void searchHlafRegMove( pair<int,int>& tempDice);
-	void searchHalfDoubleMove(int& tempDice );
+	void buildhalfLevel(Node* root);
+	void searchHlafRegMove( pair<int,int>& tempDice, Node* root);
+	void searchHalfDoubleMove(int& tempDice, Node* root );
 
 
 	int mudul;
@@ -86,7 +84,7 @@ public:
 	pair<int,int> m_move3;
 	pair<int,int> m_move4;
 
-	int heurristic_val;
+	double heurristic_val;
 	int mdlMe;
 	int mdlHim;
 	int m_board[25];

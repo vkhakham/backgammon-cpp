@@ -355,7 +355,7 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 	std::cout << buffer << " black out: " << a_out[1] << "      dice: "<< man->_dice.first <<"x"<< man->_dice.second<<endl;
 	if (turnPrintAllocationPrints)
 	{
-		std::cout << "first level: "<< man->currentPlayer->root->children.size()<<endl;
+		std::cout << "first level: "<< man->currentPlayer->player_root->children.size()<<endl;
 		std::cout << "second level: "<< man->currentPlayer->allTreeNodes << endl;
 	}
 

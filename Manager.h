@@ -6,6 +6,7 @@
 #define HOWMANYGAMESINAROW 10
 #define MUDUL 46
 #define DICENUM 46
+#define TREELEVELS 2
 
 
 #include <iostream>
@@ -16,13 +17,15 @@
 #include "Board.h"
 #include "Player.h"
 #include "Validator.h"
-
+#include "strategy.h"
+#include <assert.h>
 
 using namespace std;
 
 class Board;
 class Validator;
 class Player;
+class strategy;
 
 //singleton
 class Manager
@@ -57,6 +60,7 @@ public:
 	Player *pBlack;
 	Player *currentPlayer;
 	Validator *val;
+	strategy *strategy_ptr;
 
 
 	void fakeDtor();
@@ -64,6 +68,8 @@ public:
 
 	int games;
 	int mudul;
+
+	int depth_level;
 private:	
 	static Manager* m_instance;
 	Manager(void);

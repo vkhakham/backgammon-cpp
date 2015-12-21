@@ -1,11 +1,16 @@
 #include "strategy.h"
 #include <assert.h>
-strategy::strategy(strategy_params params)
+
+double strategy::evaluate_node(Node* node)
 {
-	_params = params;
+	assert(node != NULL);
+
+	node->heurristic_val = calc_dist(node);
+
+	return 0;
 }
 
-int calc_dist(Node* node)
+double calc_dist(Node* node)
 {
 	assert(node != NULL);
 	int* brd = node->m_board;

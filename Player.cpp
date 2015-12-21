@@ -4,11 +4,36 @@
 
 #define PLAYER1 0
 #define PLAYER2 0
-#define TREELEVELS 2
 //#define MUDUL 555
 
 
 int Player::memoryTrace = 0;
+
+Node::Node(int* array , int amdlMe , int amdlHim ,pair<int,int> currentDice)
+{	
+	pair<int,int> p(0,0);
+	m_move1 = p;
+	m_move2 = p;
+	m_move3 = p;
+	m_move4 = p;
+	mdlMe = amdlMe;
+	mdlHim = amdlHim;
+	m_dice = currentDice;
+	m_board[25];
+	memcpy(m_board,array, sizeof(int) * 25);
+	heurristic_val = numeric_limits<double>::lowest();
+	/*whatMoveAmI1 = " ";
+	whatMoveAmI2 = " ";
+	whatMoveAmI3 = " ";
+	whatMoveAmI4 = " ";*/
+	whiteLevel = false;
+
+	idDice = 0;
+}
+
+Node::~Node(void)
+{
+}
 
 Player::Player(bool p)
 {
@@ -96,7 +121,7 @@ Player::Player(bool p)
 	doSwapMove = false;
 	stucked = false;
 	theChoise = NULL;
-	root = new Node(boardForLevel , 0 , 0, pair<int,int>(-1,-1));
+	player_root = new Node(boardForLevel , 0 , 0, pair<int,int>(-1,-1));
 	updateNode = new Node(boardForLevel , 0 , 0, pair<int,int>(-1,-1));
 	lastTry = -1;
 	allTreeNodes = -1;
@@ -161,27 +186,27 @@ pair<int,int> Player::chooseDice()
 				p = theChoise->m_dice;
 			}
 		}
-		else // the choise == null - no children to root.
-		{
-			isWhitePlayer ? theChoise = halfMoveChooseWhatToDoWhiteStart() : theChoise = halfMoveChooseWhatToDoBlackStart(); 
-			if (theChoise )
-			{
-				if (doSwap)
-				{
-					p.first = theChoise->m_dice.second;
-					p.second= theChoise->m_dice.first;
-					doSwap = false;
-				}
-				else
-				{
-					p = theChoise->m_dice;
-				}
-			}
-			else// the choise == null
-			{
-				if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
-			}
-		}
+		//else // the choise == null - no children to root.
+		//{
+		//	isWhitePlayer ? theChoise = halfMoveChooseWhatToDoWhiteStart() : theChoise = halfMoveChooseWhatToDoBlackStart(); 
+		//	if (theChoise )
+		//	{
+		//		if (doSwap)
+		//		{
+		//			p.first = theChoise->m_dice.second;
+		//			p.second= theChoise->m_dice.first;
+		//			doSwap = false;
+		//		}
+		//		else
+		//		{
+		//			p = theChoise->m_dice;
+		//		}
+		//	}
+		//	else// the choise == null
+		//	{
+		//		if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
+		//	}
+		//}
 		
 
 	}
@@ -329,34 +354,57 @@ pair<int,int> Player::chooseMove()
 
 Node* Player::chooseWhatToDo()
 {
-	delete(root);
-	root = NULL;
+	double max = numeric_limits<double>::lowest();
+	delete(player_root);
+	player_root = NULL;
 	bool is_white = man->bIsWhiteTurn;
 	allTreeNodes = 1;
 	getRemainingDice(a_bag, is_white ? man->pWhite->a_bag : man->pBlack->a_bag);
 	for (int i = 0; i < 25; i++) { boardForLevel[i] = is_white ? man->b->a_rboard[i]: man->b->a_board[i]; }
 	// a_mdl[0] is white middle
-	root = new Node(boardForLevel, man->b->a_mdl[is_white], man->b->a_mdl[!is_white], pair<int, int>(-1, -1));
-	root->whiteLevel = !is_white;
-	build_tree(TREELEVELS);
+	player_root = new Node(boardForLevel, man->b->a_mdl[is_white], man->b->a_mdl[!is_white], pair<int, int>(-1, -1));
+	player_root->whiteLevel = !is_white;
+	build_tree(player_root, man->depth_level, true, true);
 
-	return root->children.size() > 0 ? root->children.at(mudul % (root->children.size())) : NULL;
+	//return root->children.size() > 0 ? root->children.at(mudul % (root->children.size())) : NULL;
+	for (Node* child : player_root->children)
+		if (child->heurristic_val == player_root->heurristic_val)
+			return child;
+	assert(0);
 }
 
-void Player::build_tree(int depth)
+void Player::build_tree(Node* root, int depth, bool my_move, bool minmax)
 {
 	buildOneLevel(root);
-	if (depth > 1)
-	{
-		swapBagForDiffrentLevel(1);
-		for (Node* child : root->children)
-		{
-			a_remainingDice[child->m_dice.first][child->m_dice.second]--;
-			buildOneLevel(child);
-			a_remainingDice[child->m_dice.first][child->m_dice.second]++;
+	swapBagForDiffrentLevel(my_move);
 
-			//delete(child);
+	if (root->children.empty())
+		buildhalfLevel(root);
+
+	for (Node* child : root->children)
+	{
+		if (depth > 1)
+		{
+			//a_remainingDice[child->m_dice.first][child->m_dice.second]--;
+			build_tree(child, depth - 1, !my_move, true);
+			//a_remainingDice[child->m_dice.first][child->m_dice.second]++;
 		}
+		else  // tree leafs - use heuristics and pass values up the tree
+		{
+			man->strategy_ptr->evaluate_node(child);
+			if (minmax) 
+			{
+				/* minmax */
+				if ((my_move && child->heurristic_val > root->heurristic_val) ||
+					(!my_move && child->heurristic_val < root->heurristic_val))
+					root->heurristic_val = child->heurristic_val;
+			}
+			else  // TODO alph-beta pruning
+			{
+				return;
+			}
+		}
+		delete(child);
 	}
 }
 
@@ -405,6 +453,48 @@ void Player::buildOneLevel(Node* levelFather)
 					{	
 						man->turns = 2;
 						searchRegMove(levelFather, pair<int, int>(i, j));
+					}
+				}
+				man->val->getDataUnecessary = false;
+			} 
+		}
+	}
+	man->val->getDataUnecessary = true;
+}
+
+void Player::buildhalfLevel(Node* root)
+{
+	memcpy(updateNode->m_board ,root->m_board,sizeof(int) *25);
+	updateNode->mdlMe = root->mdlHim;
+	
+	for (int i = 1; i < 7; i++)
+	{
+		for (int j = 1; j < 7; j++)
+		{
+			if (bagForLevel[i][j] > 0) 
+			{
+				i==j ? man->turns = 4 : man->turns = 2;
+				man->_dice = pair<int,int>(i,j);	
+				bool x = false;
+				bool isDubel = (i == j);
+				
+				if(isDubel)
+				{
+					x = !(man->val->dubelCannotMove());//player data !
+					if (x)
+					{
+						man->turns = 4;
+						searchHalfDoubleMove(i, root);
+					}
+					
+				}
+				else
+				{
+					x = !(man->val->regCannotMove());
+					if (x)
+					{
+						man->turns = 2;
+						searchHlafRegMove(pair<int, int>(i, j), root);
 					}
 				}
 				man->val->getDataUnecessary = false;
@@ -563,32 +653,6 @@ void Player::searchDoubleMove(Node *levelFather,int& tempDice )
 			revDubleChanges(rev1 , &ate1, tempBoard, i, &tempMdlme , &tempMdlhim , tempDice);
 		}
 	}
-}
-
-Node::Node(int* array , int amdlMe , int amdlHim ,pair<int,int> currentDice)
-{	
-	pair<int,int> p(0,0);
-	m_move1 = p;
-	m_move2 = p;
-	m_move3 = p;
-	m_move4 = p;
-	mdlMe = amdlMe;
-	mdlHim = amdlHim;
-	m_dice = currentDice;
-	m_board[25];
-	memcpy(m_board,array, sizeof(int) * 25);
-	heurristic_val = 0;
-	/*whatMoveAmI1 = " ";
-	whatMoveAmI2 = " ";
-	whatMoveAmI3 = " ";
-	whatMoveAmI4 = " ";*/
-	whiteLevel = false;
-
-	idDice = 0;
-}
-
-Node::~Node(void)
-{
 }
 
 void Player::getRemainingDice(pair<int,int>* my_bag, pair<int,int>* his_bag)
@@ -760,7 +824,7 @@ void Player::revDubleChanges(int rev,bool* ate, int* tempBoard,int moveStart,int
 
 pair<int,int> Player::sacrificeADice()
 {
-	destroyLevel(root);
+	destroyLevel(player_root);
 	pair<int,int> p (-5,-5);
 	for(int i=0; i<DICENUM ; i++)
 	{
@@ -777,73 +841,19 @@ pair<int,int> Player::sacrificeADice()
 }
 
 
-Node * Player::halfMoveChooseWhatToDoWhiteStart() 
-{
-	delete(root);
-	root= NULL;
-	allTreeNodes = 1;
-	getRemainingDice(a_bag,man->pBlack->a_bag);
-	root = new Node(man->b->a_board ,man->b->a_mdl[1],man->b->a_mdl[0], pair<int,int>(-1,-1));
-	root->whiteLevel = false;
-	buildhalfLevel();
-	return root->children.size() > 0 ? root->children.at(mudul%(root->children.size())) : NULL;
-}
+//Node * Player::halfMoveChooseWhatToDoWhiteStart() 
+//{
+//	delete(player_root);
+//	player_root= NULL;
+//	allTreeNodes = 1;
+//	getRemainingDice(a_bag,man->pBlack->a_bag);
+//	player_root = new Node(man->b->a_board ,man->b->a_mdl[1],man->b->a_mdl[0], pair<int,int>(-1,-1));
+//	player_root->whiteLevel = false;
+//	buildhalfLevel(player_root);
+//	return player_root->children.size() > 0 ? player_root->children.at(mudul%(player_root->children.size())) : NULL;
+//}
 
-Node * Player::halfMoveChooseWhatToDoBlackStart() 
-{
-	delete(root);
-	root= NULL;
-	allTreeNodes = 1;
-	getRemainingDice(a_bag,man->pWhite->a_bag);
-	root = new Node(man->b->a_rboard ,man->b->a_mdl[0],man->b->a_mdl[1], pair<int,int>(-1,-1));
-	root->whiteLevel = true;
-	buildhalfLevel();
-	return root->children.size() > 0 ? root->children.at(mudul%(root->children.size())) : NULL;
-}
-
-void Player::buildhalfLevel()
-{
-	memcpy(updateNode->m_board ,root->m_board,sizeof(int) *25);
-	updateNode->mdlMe = root->mdlHim;
-	
-	for (int i = 1; i < 7; i++)
-	{
-		for (int j = 1; j < 7; j++)
-		{
-			if (bagForLevel[i][j] > 0) 
-			{
-				i==j ? man->turns = 4 : man->turns = 2;
-				man->_dice = pair<int,int>(i,j);	
-				bool x = false;
-				bool isDubel = (i == j);
-				
-				if(isDubel)
-				{
-					x = !(man->val->dubelCannotMove());//player data !
-					if (x)
-					{
-						man->turns = 4;
-						searchHalfDoubleMove(i);
-					}
-					
-				}
-				else
-				{
-					x = !(man->val->regCannotMove());
-					if (x)
-					{
-						man->turns = 2;
-						searchHlafRegMove(pair<int, int>(i, j));
-					}
-				}
-				man->val->getDataUnecessary = false;
-			} 
-		}
-	}
-	man->val->getDataUnecessary = true;
-}
-
-void Player::searchHlafRegMove( pair<int,int>& tempDice)
+void Player::searchHlafRegMove( pair<int,int>& tempDice, Node* root)
 {
 	int idDice=0;
 	int tempBoard[25];
@@ -888,7 +898,7 @@ void Player::searchHlafRegMove( pair<int,int>& tempDice)
 	}
 }
 
-void Player::searchHalfDoubleMove(int& tempDice )
+void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 {
 	bool pin1,pin2,pin3;
 	bool ate1,ate2,ate3;

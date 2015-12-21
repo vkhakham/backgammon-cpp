@@ -1,9 +1,13 @@
 #ifndef __STRATEGY__
 #define __STRATEGY__
+
+#include "Manager.h"
 #include "Player.h"
 
 #define MIN_POS 0
 #define MAX_POS 24
+
+class Node;
 
 typedef struct
 {
@@ -13,14 +17,12 @@ typedef struct
 class strategy
 {
 public:
-	strategy(strategy_params params);
-	/*TODO add to node class a variable to hold score*/
-	void evaluate_tree(Node* node);
-	void evaluate_node(Node* node);
+	//strategy(/*strategy_params params*/);
+	double evaluate_node(Node* node);
 private:
-	strategy_params _params;
+	//strategy_params _params;
 };
 
-int calc_dist(Node* node);
+double calc_dist(Node* node);
 
 #endif /*__STRATEGY__*/
