@@ -13,6 +13,8 @@ using namespace std;
 class Node;
 class Manager;
 
+void switch_board(int* brd);
+
 class Player
 {
 public:
@@ -44,7 +46,6 @@ public:
 	static int memoryTrace;
 
 	Node* player_root;
-	bool doSwap;
 	bool doSwapMove;
 	pair<int,int> chosenMove;
 	pair<int,int> chosenDice;
@@ -79,12 +80,12 @@ public:
 	~Node(void);
 
 	pair<int,int> m_dice;
+	double heurristic_val;
 	pair<int,int> m_move1;
 	pair<int,int> m_move2;
 	pair<int,int> m_move3;
 	pair<int,int> m_move4;
 
-	double heurristic_val;
 	int mdlMe;
 	int mdlHim;
 	int m_board[25];

@@ -94,11 +94,33 @@ bool Validator::checkDice()
 			return true;
 		}
 	}
-	msg1 = "no such dice in the bag";
-	if(man->currentPlayer->_isHuman == 0)
+	//just to run today without doSwap
+	man->swapDice();
+	for (int i = 0; i < DICENUM ; i++)
 	{
-		man->currentPlayer->doSwap = true;
+		if (man->currentPlayer->a_bag[i] == man->_dice  ) //entering here only if dice in bag
+		{
+			man->currentPlayer->a_bag[i].first = -1; //this how i mark dice not in bag
+			man->currentPlayer->n_DiceInBag--; //total dice in bag
+			string x("x");
+			if (man->_dice.first == man->_dice.second) //double dice
+			{
+				string tmpDice(std::to_string(man->_dice.first));
+				man->turns = 4;
+				man->bCurrentDiceDubel = true;
+				man->sDice = (tmpDice+x+tmpDice+x+tmpDice+x+tmpDice);
+			}
+			else //regular dice
+			{
+				man->sDice = std::to_string(man->_dice.first) + x + std::to_string(man->_dice.second) ;
+				man->turns = 2;
+				man->bCurrentDiceDubel = false;
+			}
+			return true;
+		}
 	}
+	msg1 = "no such dice in the bag";
+
 	return false;
 }
 

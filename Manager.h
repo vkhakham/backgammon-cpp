@@ -2,11 +2,14 @@
 #define _MANAGER_H_
 #pragma once
 
-#define PLAYINGAGAINSMAYANDROTEM 0
-#define HOWMANYGAMESINAROW 10
-#define MUDUL 46
 #define DICENUM 46
+#define PLAYINGAGAINSMAYANDROTEM 0
+#define HOWMANYGAMESINAROW 0
+#define DEBUG val->msg4="move from "+std::to_string(_move.first)+" to "+std::to_string(_move.second);
+#define PLAYER1 0
+#define PLAYER2 0
 #define TREELEVELS 2
+#define INF 10000
 
 
 #include <iostream>
@@ -19,7 +22,13 @@
 #include "Validator.h"
 #include "strategy.h"
 #include <assert.h>
+#include <time.h> 
+#include <stdlib.h>    
 
+typedef std::pair<int,int> my_pair;
+typedef int dice_matrix[7][7];
+typedef int** p_matrix;
+typedef int array_of_20_uint8_t[20];
 using namespace std;
 
 class Board;
@@ -60,16 +69,12 @@ public:
 	Player *pBlack;
 	Player *currentPlayer;
 	Validator *val;
-	strategy *strategy_ptr;
-
-
+	int maxDepth;
 	void fakeDtor();
 	void fakeCtor();
 
 	int games;
-	int mudul;
-
-	int depth_level;
+		strategy *strategy_ptr;
 private:	
 	static Manager* m_instance;
 	Manager(void);

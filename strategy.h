@@ -6,8 +6,10 @@
 
 #define MIN_POS 0
 #define MAX_POS 24
+#define JAIL_MULTIPLIER 40
 
 class Node;
+
 
 typedef struct
 {
@@ -18,11 +20,12 @@ class strategy
 {
 public:
 	//strategy(/*strategy_params params*/);
-	double evaluate_node(Node* node);
+	double evaluate_node(Node* node, bool my_move);
+	double calc_dist(Node* node);
+	double jail(Node* node, double jail_penalty_multi, bool my_move);
 private:
 	//strategy_params _params;
 };
 
-double calc_dist(Node* node);
 
 #endif /*__STRATEGY__*/
