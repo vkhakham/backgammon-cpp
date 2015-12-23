@@ -18,15 +18,19 @@ void switch_board(int* brd);
 class Player
 {
 public:
-	Player(bool);
+	Player(bool player_color, int dice_version, int player_type);
+
+	void init_dice_matrix(int game_version);
+
 	void initPointers();
-	pair<int,int> chooseMove();
-	pair<int,int> chooseDice();
+	my_pair chooseMove();
+	my_pair chooseDice();
 	~Player(void);
 
 	int n_DiceInBag;
 	string s_color;
-	pair<int,int> a_bag[DICENUM];
+	//my_pair a_bag[DICENUM];
+	dice_matrix m_bag;
 	bool _isHuman;
 	int lastTry;
 	int round;
@@ -40,21 +44,21 @@ public:
 	int a_moveTransfer[25]; //so when black play 24->23 it will be seen as 1->2
 
 	int allTreeNodes;
-	void getRemainingDice(pair<int,int>*,pair<int,int>*);
+	void getRemainingDice(dice_matrix my_bag, dice_matrix his_bag);
 	void swapBagForDiffrentLevel(bool);
 
 	static int memoryTrace;
 
 	Node* player_root;
 	bool doSwapMove;
-	pair<int,int> chosenMove;
-	pair<int,int> chosenDice;
+	my_pair chosenMove;
+	my_pair chosenDice;
 	Node* chooseWhatToDo();
 
 	void build_tree(Node* root, int depth, bool my_move, bool minmax);
 
 	void buildOneLevel(Node *);
-	void searchRegMove(Node *,pair<int,int>& );
+	void searchRegMove(Node *,my_pair& );
 	void searchDoubleMove(Node *,int& );
 	Node* theChoise;
 	Node* updateNode;
@@ -63,12 +67,11 @@ public:
 	void revDubleChanges(int ,bool* , int* ,int ,int* ,int * , int  );
 	bool stucked;
 
-	pair<int,int> sacrificeADice();
+	//my_pair sacrificeADice();
 
 	void buildhalfLevel(Node* root);
-	void searchHlafRegMove( pair<int,int>& tempDice, Node* root);
+	void searchHlafRegMove( my_pair& tempDice, Node* root);
 	void searchHalfDoubleMove(int& tempDice, Node* root );
-
 
 	int mudul;
 };
@@ -76,15 +79,15 @@ public:
 class Node
 {
 public:
-	Node(int *,int,int,pair<int,int>);
+	Node(int *,int,int,my_pair);
 	~Node(void);
 
-	pair<int,int> m_dice;
+	my_pair m_dice;
 	double heurristic_val;
-	pair<int,int> m_move1;
-	pair<int,int> m_move2;
-	pair<int,int> m_move3;
-	pair<int,int> m_move4;
+	my_pair m_move1;
+	my_pair m_move2;
+	my_pair m_move3;
+	my_pair m_move4;
 
 	int mdlMe;
 	int mdlHim;

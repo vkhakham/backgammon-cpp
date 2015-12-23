@@ -55,10 +55,10 @@ void Validator::flushMsg()
 //dice
 bool Validator::checkDice()
 {
-	if((man->currentPlayer->_isHuman == 0) && PLAYINGAGAINSMAYANDROTEM  && (man->_dice.first == -5)) //player dont have any dice to play
+	if(man->_dice.first == -5) //player dont have any dice to play
 	{
 		man->turns = 0;
-		msg1 = "Computer cant play anything";
+		msg1 = "no move registered, turn passed";
 		return true;
 	}
 
@@ -68,56 +68,37 @@ bool Validator::checkDice()
 		return false;
 	}
 	
+	if (man->_dice.first > man->_dice.second)
+		swap(man->_dice.first, man->_dice.second);
 	
-
-
-	for (int i = 0; i < DICENUM ; i++)
+	if (man->currentPlayer->m_bag[man->_dice.first][man->_dice.second] >= 1) //entering here only if dice in bag
 	{
-		if (man->currentPlayer->a_bag[i] == man->_dice  ) //entering here only if dice in bag
-		{
-			man->currentPlayer->a_bag[i].first = -1; //this how i mark dice not in bag
+		if (man->dice_version == 1) {
+			man->currentPlayer->m_bag[man->_dice.first][man->_dice.second]--;
 			man->currentPlayer->n_DiceInBag--; //total dice in bag
-			string x("x");
-			if (man->_dice.first == man->_dice.second) //double dice
-			{
-				string tmpDice(std::to_string(man->_dice.first));
-				man->turns = 4;
-				man->bCurrentDiceDubel = true;
-				man->sDice = (tmpDice+x+tmpDice+x+tmpDice+x+tmpDice);
-			}
-			else //regular dice
-			{
-				man->sDice = std::to_string(man->_dice.first) + x + std::to_string(man->_dice.second) ;
-				man->turns = 2;
-				man->bCurrentDiceDubel = false;
-			}
-			return true;
 		}
-	}
-	//just to run today without doSwap
-	man->swapDice();
-	for (int i = 0; i < DICENUM ; i++)
-	{
-		if (man->currentPlayer->a_bag[i] == man->_dice  ) //entering here only if dice in bag
+		else {
+			man->pBlack->m_bag[man->_dice.first][man->_dice.second]--;
+			man->pWhite->m_bag[man->_dice.first][man->_dice.second]--;
+			man->pBlack->n_DiceInBag--;
+			man->pWhite->n_DiceInBag--;
+		}
+		string x("x");
+		if (man->_dice.first == man->_dice.second) //double dice
 		{
-			man->currentPlayer->a_bag[i].first = -1; //this how i mark dice not in bag
-			man->currentPlayer->n_DiceInBag--; //total dice in bag
-			string x("x");
-			if (man->_dice.first == man->_dice.second) //double dice
-			{
-				string tmpDice(std::to_string(man->_dice.first));
-				man->turns = 4;
-				man->bCurrentDiceDubel = true;
-				man->sDice = (tmpDice+x+tmpDice+x+tmpDice+x+tmpDice);
-			}
-			else //regular dice
-			{
-				man->sDice = std::to_string(man->_dice.first) + x + std::to_string(man->_dice.second) ;
-				man->turns = 2;
-				man->bCurrentDiceDubel = false;
-			}
-			return true;
+			string tmpDice(std::to_string(man->_dice.first));
+			man->turns = 4;
+			man->bCurrentDiceDubel = true;
+			man->sDice = (tmpDice+x+tmpDice+x+tmpDice+x+tmpDice);
 		}
+		else //regular dice
+		{
+			man->sDice = std::to_string(man->_dice.first) + x + std::to_string(man->_dice.second) ;
+			man->turns = 2;
+			man->bCurrentDiceDubel = false;
+		}
+		return true;
+		
 	}
 	msg1 = "no such dice in the bag";
 

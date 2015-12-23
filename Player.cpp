@@ -1,86 +1,19 @@
 #include "Player.h"
 #include "Manager.h"
 
-#define INIT_HEURISTIC_VAL numeric_limits<double>::lowest()
-
 int Player::memoryTrace = 0;
 
-Player::Player(bool p)
+Player::Player(bool player_color, int dice_version, int player_type)
 {
 	round = 0;
-	int f = 0;
 	turn = -1;
-	isWhitePlayer = p;
-	p ? _isHuman = PLAYER1 : _isHuman = PLAYER2;
-	p ? s_color="WHITE" : s_color = "BLACK"; 
-	n_DiceInBag = DICENUM;
-//n_DiceInBag = 1;
-	for (int i = 1; i <= 6; i++)
-	{
-		for (int j = 1; j <= 6; j++)
-		{
-			a_bag[f].first = i ;
-			a_bag[f++].second = j;
-		}
-	}
-	srand ((unsigned int)time(NULL));
-	for (int i = f; i < f+10; i++)
-	{
-		a_bag[i].first = 6;// rand() % 6 + 1;
-		a_bag[i].second = 6;//rand() % 6 + 1;
-	}
+	isWhitePlayer = player_color;
+	_isHuman = player_type == 1;
+	player_color ? s_color="WHITE" : s_color = "BLACK"; 
+	dice_version == 1 ? n_DiceInBag = DICENUM_VERSION1 : n_DiceInBag = DICENUM_VERSION2;
 	man = NULL;
+	init_dice_matrix(dice_version);
 
-	//pair<int,int> p1(-1,6);
-	//pair<int,int> p2(6,6);
-	//p ? a_bag[36] = p1 : a_bag[36] = p2;
-	/*a_bag[36] = pair<int,int> (5,4);
-	a_bag[37] = pair<int,int> (6,1);
-	a_bag[38] = pair<int,int> (3,4);
-	a_bag[39] = pair<int,int> (3,1);
-	a_bag[40] = pair<int,int> (1,5);
-	a_bag[41] = pair<int,int> (4,4);
-	a_bag[42] = pair<int,int> (2,1);
-	a_bag[43] = pair<int,int> (2,2);
-	a_bag[44] = pair<int,int> (5,4);
-	a_bag[45] = pair<int,int> (2,5);*/
-	//a_bag[45] = pair<int, int>(2, 5);
-	/*if (!p )
-	{
-		n_DiceInBag = 8;
-		a_bag[17] = pair<int,int> (6,6);
-		a_bag[19] = pair<int,int> (6 ,6);
-		a_bag[23] = pair<int,int> (6,6);
-		a_bag[29] = pair<int,int> (6,6);
-		a_bag[30] = pair<int,int> (6,6);
-		a_bag[32] = pair<int,int> (6,6);
-		a_bag[39] = pair<int,int> (6,6);
-		a_bag[45] = pair<int,int> (6,6);
-	}
-	if (p )
-	{
-		n_DiceInBag = 7;
-		a_bag[3] = pair<int,int> (6,6);
-		a_bag[17] = pair<int,int> (6,6);
-		a_bag[30] = pair<int,int> (6,6);
-		a_bag[36] = pair<int,int> (6,6);
-		a_bag[37] = pair<int,int> (6,6);
-		a_bag[41] = pair<int,int> (6,6);
-		a_bag[45] = pair<int,int> (6,6);
-	
-
-	}*/
-	
-
-	for (int i = 0; i < 7; i++)
-	{
-		for (int j = 0; j < 7; j++)
-		{
-			a_remainingDice[i][j] = 0;
-			bagForLevel[i][j] = 0;
-	        a_remainingDiceOpponent[i][j] = 0;
-		}
-	}
 	fill_n(a_moveTransfer, 25, 0);
 	int num = 24;
 	for (int i = 1; i < 25; i++)
@@ -91,20 +24,62 @@ Player::Player(bool p)
 	doSwapMove = false;
 	stucked = false;
 	theChoise = NULL;
-	player_root = new Node(boardForLevel , 0 , 0, pair<int,int>(-1,-1));
-	updateNode = new Node(boardForLevel , 0 , 0, pair<int,int>(-1,-1));
+	player_root = new Node(boardForLevel , 0 , 0, my_pair(-1,-1));
+	updateNode = new Node(boardForLevel , 0 , 0, my_pair(-1,-1));
 	lastTry = -1;
 	allTreeNodes = -1;
 
+}
+
+void Player::init_dice_matrix(int game_version)
+{
+	if (game_version == 1)
+	{
+		for (int i = 0; i < 7; i++){
+			for (int j = 0; j < 7; j++){
+				if (i == j && i != 0 && j != 0)
+					m_bag[i][j] = 1;
+				else if (i < j && i != 0 && j != 0)
+					m_bag[i][j] = 2;
+				else
+					m_bag[i][j] = -1;
+			}
+		}
+
+		srand((unsigned int)time(NULL));
+		for (int i = 0; i < 10; i++)
+		{
+			int dice1 = rand() % 6 + 1;
+			int dice2 = rand() % 6 + 1;
+			if (dice1 > dice2)
+			{
+				int tmp = dice1; dice1 = dice2; dice2 = tmp;
+			}
+			m_bag[dice1][dice2]++;
+		}
+	}
+	else  // game version #2
+	{
+		for (int i = 0; i < 7; i++){
+			for (int j = 0; j < 7; j++){
+				if (i == j && i != 0 && j != 0)
+					m_bag[i][j] = 2;
+				else if (i < j && i != 0 && j != 0)
+					m_bag[i][j] = 4;
+				else
+					m_bag[i][j] = -1;
+			}
+		}
+	}
 }
 
 Player::~Player(void)
 {
 }
 
-pair<int,int> Player::chooseDice()
+my_pair Player::chooseDice()
 {
-	pair<int,int> p(-5,-5);
+	my_pair p(-5,-5);
 	string input1 = " ";
 	string input2 = " ";
 	/*cin.clear();
@@ -145,10 +120,10 @@ pair<int,int> Player::chooseDice()
 		{
 			p = theChoise->m_dice;
 		}
-		else // the choise == null - no children to root.
-		{			
-				if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
-		}
+		//else // the choise == null - no children to root.
+		//{			
+		//		if (! PLAYINGAGAINSMAYANDROTEM)  p = sacrificeADice(); 
+		//}
 		
 
 
@@ -157,10 +132,10 @@ pair<int,int> Player::chooseDice()
 	return p; //p == -5,-5  default
 }
 
-pair<int,int> Player::chooseMove()
+my_pair Player::chooseMove()
 {
 	string input;
-	pair<int,int> p(0,0);
+	my_pair p(0,0);
 	/*cin.clear();
 	fflush(stdin);*/
 	if (_isHuman) //human
@@ -303,18 +278,18 @@ Node* Player::chooseWhatToDo()
 	bool is_white = man->bIsWhiteTurn;
 	allTreeNodes = 1;
 
-	getRemainingDice(a_bag, is_white ? man->pWhite->a_bag : man->pBlack->a_bag);
+	getRemainingDice(m_bag, is_white ? man->pWhite->m_bag : man->pBlack->m_bag);
 
 	for (int i = 0; i < 25; i++) { boardForLevel[i] = is_white ? man->b->a_rboard[i]: man->b->a_board[i]; }
 
 	// a_mdl[0] is white middle
-	player_root = new Node(boardForLevel, man->b->a_mdl[is_white], man->b->a_mdl[!is_white], pair<int, int>(-1, -1));
+	player_root = new Node(boardForLevel, man->b->a_mdl[is_white], man->b->a_mdl[!is_white], my_pair(-1, -1));
 	player_root->whiteLevel = !is_white;
 
 	build_tree(player_root, man->maxDepth, true, true);
 
 	for (Node* child : player_root->children)
-		if (child->heurristic_val > player_root->heurristic_val) {
+		if (child->heurristic_val >= player_root->heurristic_val) {
 			player_root->heurristic_val = child->heurristic_val;
 			best_child = child;
 		}
@@ -368,8 +343,10 @@ void Player::build_tree(Node* root, int depth, bool max_move, bool minmax)
 				return;
 			}
 		}
-		if (root != player_root)	/*don't delete first level*/
+		if (root != player_root){	/*don't delete first level*/
 			delete(child);
+			Player::memoryTrace--;
+		}
 	}
 }
 
@@ -395,7 +372,7 @@ void Player::buildOneLevel(Node* levelFather)
 		{
 			if (bagForLevel[i][j] > 0) 
 			{
-				man->_dice = pair<int,int>(i,j);	
+				man->_dice = my_pair(i,j);	
 				bool x = false;
 				bool isDubel = (i == j);
 				
@@ -416,7 +393,7 @@ void Player::buildOneLevel(Node* levelFather)
 					if (x)
 					{	
 						man->turns = 2;
-						searchRegMove(levelFather, pair<int, int>(i, j));
+						searchRegMove(levelFather, my_pair(i, j));
 					}
 				}
 				man->val->getDataUnecessary = false;
@@ -426,7 +403,7 @@ void Player::buildOneLevel(Node* levelFather)
 	man->val->getDataUnecessary = true;
 }
 
-void Player::searchRegMove(Node *levelFather, pair<int,int>& tempDice)
+void Player::searchRegMove(Node *levelFather, my_pair& tempDice)
 {
 	int idDice=0;
 	int tempBoard[25];
@@ -460,8 +437,8 @@ void Player::searchRegMove(Node *levelFather, pair<int,int>& tempDice)
 					if ( int rev2 = chekcDoubleEntry(tempBoard,  &tempMdlme, &tempMdlhim,  j,  tempDice.second, &pin2 , &ate2) )
 					{
 						if(stucked) { break;}
-						pair<int,int> move1;
-						pair<int,int> move2;
+						my_pair move1;
+						my_pair move2;
 						int temp ;
 						pin1 ? temp = tempDice.first : temp = i;
 						move1.first = temp;
@@ -536,7 +513,7 @@ void Player::searchDoubleMove(Node *levelFather,int& tempDice )
 							{	
 								if(int rev4 = chekcDoubleEntry(tempBoard,&tempMdlme , &tempMdlhim , j ,tempDice , &pin4 , &ate4) )
 								{
-									Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,pair<int,int>(tempDice,tempDice));
+									Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,my_pair(tempDice,tempDice));
 									Player::memoryTrace++;
 									int temp;
 									allTreeNodes++;
@@ -577,9 +554,9 @@ void Player::searchDoubleMove(Node *levelFather,int& tempDice )
 	}
 }
 
-Node::Node(int* array , int amdlMe , int amdlHim ,pair<int,int> currentDice)
+Node::Node(int* array , int amdlMe , int amdlHim ,my_pair currentDice)
 {	
-	pair<int,int> p(0,0);
+	my_pair p(0,0);
 	m_move1 = p;
 	m_move2 = p;
 	m_move3 = p;
@@ -602,71 +579,34 @@ Node::Node(int* array , int amdlMe , int amdlHim ,pair<int,int> currentDice)
 Node::~Node(void)
 {
 }
-void Player::getRemainingDice(pair<int,int>* my_bag, pair<int,int>* his_bag)
+void Player::getRemainingDice(dice_matrix my_bag, dice_matrix his_bag)
 {
-	int arg1;
-	int arg2;
 	for (int i = 0; i < 7; i++)
 	{
 		for (int j = 0; j < 7; j++)
 		{
-			a_remainingDice[i][j] = 0;
-			bagForLevel[i][j] = 0;
-	        a_remainingDiceOpponent[i][j] = 0;
+			a_remainingDice[i][j] = my_bag[i][j];
+			bagForLevel[i][j] = my_bag[i][j];
+			a_remainingDiceOpponent[i][j] = his_bag[i][j];
 		}
 	}
-
-	for (int i = 0; i < DICENUM; i++)
-	{
-		if ((my_bag[i].first!=-1))
-		{
-			if (my_bag[i].first >my_bag[i].second) 
-			{
-				arg1 = my_bag[i].second;
-				arg2 = my_bag[i].first;
-			}
-			else
-			{
-				arg2 = my_bag[i].second;
-				arg1 = my_bag[i].first;
-			}
-			a_remainingDice[arg1][arg2]++;
-			bagForLevel[arg1][arg2]++;
-		}		
-	}
-	
-		for (int i = 0; i < DICENUM; i++)
-	{
-		if ((his_bag[i].first!=-1))
-		{
-			if (his_bag[i].first >his_bag[i].second) 
-			{
-				arg1 = his_bag[i].second;
-				arg2 = his_bag[i].first;
-			}
-			else
-			{
-				arg2 = his_bag[i].second;
-				arg1 = his_bag[i].first;
-			}
-			a_remainingDiceOpponent[arg1][arg2]++;
-
-		}		
-	}
-	
-return;
 }
 
 void Player::swapBagForDiffrentLevel(bool toCurrent)
 {
-	if(toCurrent)
-		for (int i = 0; i < 7; i++)
-			for (int j = 0; j < 7; j++)
-				bagForLevel[i][j] = a_remainingDice[i][j]; 
-	else
-		for (int i = 0; i < 7; i++)
-			for (int j = 0; j < 7; j++)
-				bagForLevel[i][j] = a_remainingDiceOpponent[i][j]; 
+	
+	
+		if (toCurrent)
+			for (int i = 0; i < 7; i++)
+				for (int j = 0; j < 7; j++)
+					bagForLevel[i][j] = a_remainingDice[i][j];
+		else
+			if (man->dice_version == 1) /// no need to copy  bag is shared
+				for (int i = 0; i < 7; i++)
+					for (int j = 0; j < 7; j++)
+						bagForLevel[i][j] = a_remainingDiceOpponent[i][j];
+	
+	
 }
 
 void Player::destroyLevel(Node* father)
@@ -766,23 +706,23 @@ void Player::revDubleChanges(int rev,bool* ate, int* tempBoard,int moveStart,int
 	return;
 }
 
-pair<int,int> Player::sacrificeADice()
-{
-	destroyLevel(player_root);
-	pair<int,int> p (-5,-5);
-	for(int i=0; i<DICENUM ; i++)
-	{
-		if((a_bag[i].first != -1) && (a_bag[i].first != a_bag[i].second ))
-			return a_bag[i];
-	}
-	for(int i=0; i<DICENUM ; i++)
-	{
-		if(a_bag[i].first != -1)
-		    return a_bag[i];
-	}
-	return p;
-
-}
+//my_pair Player::sacrificeADice()
+//{
+//	destroyLevel(player_root);
+//	my_pair p (-5,-5);
+//	for(int i=0; i<DICENUM_VERSION1 ; i++)
+//	{
+//		if((a_bag[i].first != -1) && (a_bag[i].first != a_bag[i].second ))
+//			return a_bag[i];
+//	}
+//	for(int i=0; i<DICENUM_VERSION1 ; i++)
+//	{
+//		if(a_bag[i].first != -1)
+//		    return a_bag[i];
+//	}
+//	return p;
+//
+//}
 
 
 void Player::buildhalfLevel(Node* root)
@@ -801,7 +741,7 @@ void Player::buildhalfLevel(Node* root)
 			if (bagForLevel[i][j] > 0) 
 			{
 				i==j ? man->turns = 4 : man->turns = 2;
-				man->_dice = pair<int,int>(i,j);	
+				man->_dice = my_pair(i,j);	
 				bool x = false;
 				bool isDubel = (i == j);
 				
@@ -821,7 +761,7 @@ void Player::buildhalfLevel(Node* root)
 					if (x)
 					{
 						man->turns = 2;
-						searchHlafRegMove(pair<int, int>(i, j) , root);
+						searchHlafRegMove(my_pair(i, j) , root);
 					}
 				}
 				man->val->getDataUnecessary = false;
@@ -830,7 +770,7 @@ void Player::buildhalfLevel(Node* root)
 	}
 	man->val->getDataUnecessary = true;
 }
-void Player::searchHlafRegMove( pair<int,int>& tempDice, Node* root)
+void Player::searchHlafRegMove( my_pair& tempDice, Node* root)
 {
 	int idDice=0;
 	int tempBoard[25];
@@ -854,7 +794,7 @@ void Player::searchHlafRegMove( pair<int,int>& tempDice, Node* root)
 			if ( int rev = chekcDoubleEntry(tempBoard,  &tempMdlme, &tempMdlhim,  j,  tempDice.first, &pin , &ate) )
 			{
 				if(stucked) break;
-				pair<int,int> tempKey;
+				my_pair tempKey;
 				int temp;
 				pin ? temp = tempDice.first : temp = j;
 				tempKey.first  = temp;
@@ -866,7 +806,7 @@ void Player::searchHlafRegMove( pair<int,int>& tempDice, Node* root)
 				myNode->m_move1= tempKey;
 				if ( myNode->m_move1.second > 24) { myNode->m_move1.second = 25;}
 				else if (pin)					  { myNode->m_move1.second = myNode->m_move1.first;}
-				myNode->m_move2 = pair<int,int>(-3,-3);
+				myNode->m_move2 = my_pair(-3,-3);
 				myNode->idDice = ++idDice;
 				root->children.push_back(myNode); 						
 				revDubleChanges(rev , &ate , tempBoard , j, &tempMdlme , &tempMdlhim , tempDice.first);
@@ -901,7 +841,7 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 					{	
 						if(int rev3 = chekcDoubleEntry(tempBoard,&tempMdlme , &tempMdlhim , j ,tempDice , &pin3 , &ate3) )
 						{
-							Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,pair<int,int>(tempDice,tempDice));
+							Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,my_pair(tempDice,tempDice));
 							Player::memoryTrace++;
 							int temp;
 							allTreeNodes++;
@@ -922,7 +862,7 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 							myNode->m_move3.second= temp +  tempDice;
 							if ( myNode->m_move3.second > 24) {  myNode->m_move3.second = 25;}
 							else if (pin3)					  {  myNode->m_move3.second = myNode->m_move3.first;}
-							myNode->m_move4 = pair<int,int> (-3,-3); 		
+							myNode->m_move4 = my_pair (-3,-3); 		
 							myNode->idDice = ++idDice;
 							root->children.push_back(myNode);
 							revDubleChanges(rev3 , &ate3 , tempBoard, j, &tempMdlme , &tempMdlhim , tempDice);
@@ -931,7 +871,7 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 					} 
 					if(made2)
 					{
-						Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,pair<int,int>(tempDice,tempDice));
+						Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,my_pair(tempDice,tempDice));
 						Player::memoryTrace++;
 						int temp;
 						allTreeNodes++;
@@ -946,8 +886,8 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 						myNode->m_move2.second = temp + tempDice; 
 						if ( myNode->m_move2.second > 24) {  myNode->m_move2.second = 25;}
 						else if (pin2)					  {  myNode->m_move2.second = myNode->m_move2.first;}
-						myNode->m_move3 = pair<int,int> (-3,-3);
-						myNode->m_move4 = pair<int,int> (-3,-3); 									
+						myNode->m_move3 = my_pair (-3,-3);
+						myNode->m_move4 = my_pair (-3,-3); 									
 						myNode->idDice = ++idDice;
 						root->children.push_back(myNode);
 						made1 = false;
@@ -957,7 +897,7 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 			} 
 			if (made1)
 			{
-				Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,pair<int,int>(tempDice,tempDice));
+				Node* myNode = new Node(tempBoard,tempMdlme,tempMdlhim,my_pair(tempDice,tempDice));
 				Player::memoryTrace++;
 				int temp;
 				allTreeNodes++;
@@ -967,9 +907,9 @@ void Player::searchHalfDoubleMove(int& tempDice, Node* root )
 				myNode->m_move1.second = temp + tempDice;
 				if ( myNode->m_move1.second > 24) {  myNode->m_move1.second = 25;}
 				else if (pin1)					  {  myNode->m_move1.second = myNode->m_move1.first;}
-				myNode->m_move2 = pair<int,int> (-3,-3);
-				myNode->m_move3 = pair<int,int> (-3,-3);
-				myNode->m_move4 = pair<int,int> (-3,-3); 									
+				myNode->m_move2 = my_pair (-3,-3);
+				myNode->m_move3 = my_pair (-3,-3);
+				myNode->m_move4 = my_pair (-3,-3); 									
 				myNode->idDice = ++idDice;
 				root->children.push_back(myNode);
 				made1 = false;

@@ -49,7 +49,7 @@ public:
 	int mdlPieces;
 	bool canRemovePieces;
 	int *currentDice;
-	pair<int, int> move;
+	my_pair move;
 
 private:
 	Validator(void);

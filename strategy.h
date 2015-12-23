@@ -6,10 +6,13 @@
 
 #define MIN_POS 0
 #define MAX_POS 24
-#define JAIL_MULTIPLIER 40
+#define JAIL_MULTIPLIER 10
+#define SAFE_BONUS 7
+#define BLOCKED_BONUS 5
+#define OPEN_PENALTY -12
+#define INHOUSE_BONUS 3
 
 class Node;
-
 
 typedef struct
 {
@@ -22,7 +25,11 @@ public:
 	//strategy(/*strategy_params params*/);
 	double evaluate_node(Node* node, bool my_move);
 	double calc_dist(Node* node);
-	double jail(Node* node, double jail_penalty_multi, bool my_move);
+	double jail(Node* node);
+	double strategy::inhouse(Node* node);
+	double strategy::blocked(Node *node);
+	double strategy::safe(Node *node);
+	double strategy::open(Node *node);
 private:
 	//strategy_params _params;
 };

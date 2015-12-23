@@ -6,8 +6,29 @@ Manager* Manager::m_instance = 0;
 
 Manager::Manager(void)
 {
-	
-
+	cout << "Please choose game version: " << endl;
+	cout << "1 = Each player has an independent bag of 46 dices " << endl;
+	cout << "2 = Both player share a bag of 72 dices " << endl;
+	//cin >> dice_version;
+	cout << "Please choose minimax version: (0 = minMax, 1 = minMax Alpha Beta)" << endl;
+	//cin >> alpha_beta;
+	cout << "Please enter max depth of minmax: (bigger than 1) " << endl;
+	//cin >> maxDepth;
+	cout << "What is the type of Player 1 ?: " << endl;
+	cout << "0 = AI " << endl;
+	cout << "1 = Human " << endl;
+	//cin >> player1;
+	cout << "What is the type of Player 2 ?: " << endl;
+	cout << "0 = AI " << endl;
+	cout << "1 = Human " << endl;
+	//cin >> player2;
+	cin.clear();
+	fflush(stdin);
+	dice_version = 2;
+	alpha_beta = 0;
+	maxDepth = 0;
+	player2 = 0;
+	player1 = 0;
 	bIsWhiteTurn = true;
 	bSwapDice = false;
 	bCurrentDiceDubel = false;
@@ -18,9 +39,9 @@ Manager::Manager(void)
 	sDice = " ";
 	turns = 0;
 	b = Board::instance();
-	pWhite= new Player(bIsWhiteTurn); 
-//system("pause"); //giving a different seed 
-	pBlack= new Player(!bIsWhiteTurn); 
+	pWhite = new Player(bIsWhiteTurn, dice_version, player1);
+	system("pause");
+	pBlack = new Player(!bIsWhiteTurn, dice_version, player2);
 	currentPlayer = pWhite;
 	val=Validator::instance();
 
@@ -147,11 +168,7 @@ void Manager::gameOver(string msg1,string msg2 ,string msg3,string msg4)
 	b->ResetInstance();
 
 	if(games--) 
-	{
-		fakeDtor();
-		fakeCtor();
 		runGame();
-	}
 	this->~Manager();
 	exit(1);
 }
@@ -164,12 +181,12 @@ void Manager::swapDice() // only swap on regular dice and when there r 2 dice to
 		sDice = std::to_string(_dice.first) + "x" + std::to_string(_dice.second);
 		val->msg1 = "dice order swapped";
 	}
-	else if ((currentPlayer->_isHuman == 0) && (currentPlayer->theChoise->m_move2.first > 0))
-	{
-		int tmp = _dice.first; _dice.first = _dice.second; _dice.second = tmp;
-		sDice = std::to_string(_dice.first) + "x" + std::to_string(_dice.second);
-		val->msg1 = "dice order swapped";
-	}
+	//else if ((currentPlayer->_isHuman == 0) && (currentPlayer->theChoise->m_move2.first > 0))
+	//{
+	//	int tmp = _dice.first; _dice.first = _dice.second; _dice.second = tmp;
+	//	sDice = std::to_string(_dice.first) + "x" + std::to_string(_dice.second);
+	//	val->msg1 = "dice order swapped";
+	//}
 
 }
 
@@ -180,37 +197,4 @@ void Manager::initPointersOfMembers() /// once ctor of manager called we have cl
 	b->initPointers();
 	val->initPointers();
 	return;
-}
-
-
-void Manager::fakeDtor()
-{
-	delete(pWhite->player_root);
-	delete(pBlack->player_root);
-	delete(pWhite->updateNode);
-	delete(pBlack->updateNode);
-
-	delete(pWhite);
-	delete(pBlack);
-
-}
-
-void Manager::fakeCtor()
-{
-	bIsWhiteTurn = true;
-	bSwapDice = false;
-	bCurrentDiceDubel = false;
-	isDiceLegal = false;
-	_move.first = 1; _move.second =1;
-	_dice.first = -2; _dice.second =-2;
-	currentDice = &_dice.first;
-	sDice = " ";
-	turns = 0;
-	b = Board::instance();
-	pWhite= new Player(bIsWhiteTurn); 
-//system("pause"); //giving a differnt seed 
-	pBlack= new Player(!bIsWhiteTurn); 
-	currentPlayer = pWhite;
-	val=Validator::instance();
-
 }

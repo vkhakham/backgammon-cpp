@@ -219,11 +219,11 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 	int mdBlack = a_mdl[1];
 	int outWhite= a_out[0];
 	int outBlack= a_out[1];
-	int counterWhite = DICENUM;
-	int counterBlack = DICENUM;
+	int counterWhite = DICENUM_VERSION1;
+	int counterBlack = DICENUM_VERSION1;
 
 	cout <<endl << endl << endl<< "\t\t\tROUND " << n_round <<endl;
-	std::cout << strFirstRow + "   WHITE bag of dice:" <<endl ;
+	cout << strFirstRow /*+ "   WHITE bag of dice:"*/ <<endl ;
 	
 	for (int i = 1; i <= 8; i++)
 	{
@@ -232,14 +232,14 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 			if (j==7)
 			{ 
 				if ((mdBlack >8) && (mdBlack - 8 >=i)) 
-					std::cout << " (## ) ";
+					cout << " (## ) ";
 				else if (mdBlack >=i)
-					std::cout << " ( # ) ";
-				else std::cout << " (   ) ";
+					cout << " ( # ) ";
+				else cout << " (   ) ";
 			}
 			else
 			{
-				std::cout << "|";
+				cout << "|";
 			}
 			bool bIsWhite = true;
 			int val = a_board[j];
@@ -249,24 +249,24 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 				val = -val;
 			}
 			if ((val >8) && (val - 8 >=i)) 
-				bIsWhite ? std::cout << "OO" : std::cout << "##";
+				bIsWhite ? cout << "OO" : cout << "##";
 			else if (val >= i) 
-				bIsWhite ? std::cout << " O" : std::cout << " #";
-			else std::cout << "  ";
+				bIsWhite ? cout << " O" : cout << " #";
+			else cout << "  ";
 		}
-		std::cout << "|| ";
+		cout << "|| ";
 		if ((outBlack >8) && (outBlack - 8 >=i)) 
-				std::cout << "##";
+				cout << "##";
 			else if (outBlack >= i) 
-				std::cout << " #";
-			else std::cout << "  ";
-		std::cout << "\t";
+				cout << " #";
+			else cout << "  ";
+		cout << "\t";
 		for (int h = 0; h < 6 && counterWhite > 0; h++)
 		{
-			if ( man->pWhite->a_bag[DICENUM-counterWhite].first != -1)
+			if ( 0)//man->pWhite->a_bag[DICENUM_VERSION1-counterWhite].first != -1)
 			{
-					std::cout <<" "  << man->pWhite->a_bag[DICENUM-counterWhite].first 
-							  << "x" << man->pWhite->a_bag[DICENUM-counterWhite].second;
+					//cout <<" "  << man->pWhite->a_bag[DICENUM_VERSION1-counterWhite].first 
+						//	  << "x" << man->pWhite->a_bag[DICENUM_VERSION1-counterWhite].second;
 			}
 			else
 			{
@@ -274,9 +274,9 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 			}
 			counterWhite--;
 		}
-		std::cout << endl;
+		cout << endl;
 	}
-	std::cout << buffer + "      BLACK bag of dice:"<<endl;
+	cout << buffer << endl;// +"      BLACK bag of dice:" << endl;
 	for (int i = 8; i >= 1; i--)
 	{
 		for (int j=24 ; j>= 13; j--)
@@ -284,14 +284,14 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 			if (j==18)
 			{ 
 				if ((mdWhite >8) && (mdWhite - 8 >=i)) 
-					std::cout << " (OO ) ";
+					cout << " (OO ) ";
 				else if (mdWhite >=i)
-					std::cout << " ( O ) ";
-				else std::cout << " (   ) ";
+					cout << " ( O ) ";
+				else cout << " (   ) ";
 			}
 			else
 			{
-				std::cout << "|";
+				cout << "|";
 			}
 			bool bIsWhite = true;
 			int val = a_board[j];
@@ -301,24 +301,24 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 				val = -val;
 			}
 			if ((val >8) && (val - 8 >=i)) 
-				bIsWhite ? std::cout << "OO" : std::cout << "##";
+				bIsWhite ? cout << "OO" : cout << "##";
 			else if (val >= i) 
-				bIsWhite ? std::cout << " O" : std::cout << " #";
-			else std::cout << "  ";
+				bIsWhite ? cout << " O" : cout << " #";
+			else cout << "  ";
 		}
-		std::cout << "|| ";
+		cout << "|| ";
 		if ((outWhite >8) && (outWhite - 8 >=i)) 
-				std::cout << "OO";
+				cout << "OO";
 			else if (outWhite >= i) 
-				std::cout << " O";
-			else std::cout << "  ";
-		std::cout << "\t";
+				cout << " O";
+			else cout << "  ";
+		cout << "\t";
 		for (int h = 0; h < 6 && counterBlack > 0; h++)
 		{
-			if ( man->pBlack->a_bag[DICENUM-counterBlack].first != -1)
+			if (0)// man->pBlack->a_bag[DICENUM_VERSION1-counterBlack].first != -1)
 			{
-					std::cout <<" "  << man->pBlack->a_bag[DICENUM-counterBlack].first 
-							  << "x" << man->pBlack->a_bag[DICENUM-counterBlack].second;
+				/*cout <<" "  << man->pBlack->a_bag[DICENUM_VERSION1-counterBlack].first
+						  << "x" << man->pBlack->a_bag[DICENUM_VERSION1-counterBlack].second;*/
 			}
 			else
 			{
@@ -326,7 +326,7 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 			}
 			counterBlack--;
 		}
-		std::cout << endl;
+		cout << endl;
 	}
 	string x("                ");
 	if (man->bCurrentDiceDubel)
@@ -344,19 +344,84 @@ void Board::printBoard(string msg1  ,string msg2 ,string msg3  ,string msg4 )
 	if (man->turns == 0) x = " ";
 
 	
-	std::cout << strLastRow << endl <<endl;
-	std::cout << buffer << " white out: "<< a_out[0] << " canRemovePieces: " << Validator::instance()->canRemovePieces <<endl ;
-	std::cout << "\t" << man->currentPlayer->s_color + "'s move:   "  << man->sDice <<endl ;
-	std::cout << "\t" << x << endl;
-	std::cout << ">>>" << msg1 << endl ;
-	std::cout << ">>>" << msg2 << endl ;
-	std::cout << ">>>" << msg3 << endl ;
-	std::cout << ">>>" << msg4 << endl ;
-	std::cout << buffer << " black out: " << a_out[1] << "      dice: "<< man->_dice.first <<"x"<< man->_dice.second<<endl;
+	cout << strLastRow << endl <<endl;
+	cout << buffer << " white out: "<< a_out[0] << " canRemovePieces: " << Validator::instance()->canRemovePieces <<endl ;
+	cout << "\t" << man->currentPlayer->s_color + "'s move:   "  << man->sDice <<endl ;
+	cout << "\t" << x << endl;
+	cout << ">>>" << msg1 << endl ;
+	cout << ">>>" << msg2 << endl ;
+	cout << ">>>" << msg3 << endl ;
+	cout << ">>>" << msg4 << endl ;
+	cout << buffer << " black out: " << a_out[1] << "      dice: "<< man->_dice.first <<"x"<< man->_dice.second<<endl;
+
+	if (man->dice_version == 1)
+	{
+		cout << "WHITE bag of dice:" << endl;
+		for (int i = 1; i < 7; i++)
+		{
+			for (int j = 1; j < 7; j++)
+			{
+				if (man->pWhite->m_bag[i][j] > 0)
+				{
+					int x = man->pWhite->m_bag[i][j];
+					for (int k = 0; k < x; k++)
+					{
+						cout << i << "x" << j << " ";
+					}
+				}
+				else if (man->pWhite->m_bag[i][j] == 0)
+				{
+					cout << "    ";
+				}
+			}
+		}
+		cout <<endl<< "Black bag of dice:" << endl;
+		for (int i = 1; i < 7; i++)
+		{
+			for (int j = 1; j < 7; j++)
+			{
+				if (man->pBlack->m_bag[i][j] > 0)
+				{
+					int x = man->pBlack->m_bag[i][j];
+					for (int k = 0; k < x; k++)
+					{
+						cout << i << "x" << j << " ";
+					}
+				}
+			}
+		}
+		cout << endl;
+	}
+	else
+	{ 
+		cout << "SHARED bag of dice:" << endl;
+		for (int i = 1; i < 7; i++)
+		{
+			for (int j = 1; j < 7; j++)
+			{
+				if (man->pWhite->m_bag[i][j] > 0)
+				{
+					int x = man->pWhite->m_bag[i][j];
+					for (int k = 0; k < x; k++)
+					{
+						cout << i << "x" << j << " ";
+					}
+				}
+				else if (man->pWhite->m_bag[i][j] == 0)
+				{
+					cout << "    ";
+				}
+			}
+		}
+		cout << endl;
+	}
+
+
+
 	if (turnPrintAllocationPrints)
 	{
-		std::cout << "first level: "<< man->currentPlayer->player_root->children.size()<<endl;
-		std::cout << "second level: "<< man->currentPlayer->allTreeNodes << endl;
+		cout << "first level: "<< man->currentPlayer->player_root->children.size()<<endl;
+		cout << "second level: "<< man->currentPlayer->allTreeNodes << endl;
 	}
 
 	man->val->flushMsg();
