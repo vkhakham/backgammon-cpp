@@ -11,7 +11,8 @@
 #define PLAYER2 0
 #define TREELEVELS 2
 #define INF 10000
-#define INIT_HEURISTIC_VAL numeric_limits<double>::lowest()
+#define INIT_HEURISTIC_VAL_MIN numeric_limits<double>::lowest()
+#define INIT_HEURISTIC_VAL_MAX numeric_limits<double>::max()
 
 
 

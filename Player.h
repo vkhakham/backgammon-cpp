@@ -55,9 +55,10 @@ public:
 	my_pair chosenDice;
 	Node* chooseWhatToDo();
 
-	void build_tree(Node* root, int depth, bool my_move, bool minmax);
+	void mini_max(Node* root, int depth, bool my_move);
+	void alpha_beta(Node* root, int depth, bool maximizing_move, double alpha, double beta);
 
-	void buildOneLevel(Node *);
+	void buildOneLevel(Node *, bool alpha_beta, bool is_last, bool max_move);
 	void searchRegMove(Node *,my_pair& );
 	void searchDoubleMove(Node *,int& );
 	Node* theChoise;
@@ -84,6 +85,8 @@ public:
 
 	my_pair m_dice;
 	double heurristic_val;
+	double alpha;
+	double beta;
 	my_pair m_move1;
 	my_pair m_move2;
 	my_pair m_move3;

@@ -25,8 +25,8 @@ Manager::Manager(void)
 	cin.clear();
 	fflush(stdin);
 	dice_version = 2;
-	alpha_beta = 0;
-	maxDepth = 0;
+	alpha_beta = 1;
+	maxDepth = 2;
 	player2 = 0;
 	player1 = 0;
 	bIsWhiteTurn = true;
@@ -47,7 +47,6 @@ Manager::Manager(void)
 
 	games = HOWMANYGAMESINAROW;
 	strategy_ptr = new strategy();
-	maxDepth = TREELEVELS;
 }
 
 Manager* Manager::instance()
