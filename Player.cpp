@@ -302,7 +302,11 @@ Node* Player::chooseWhatToDo()
 		mini_max(player_root, man->maxDepth, true);
 
 	for (Node* child : player_root->children)
-		if (child->heurristic_val >= player_root->heurristic_val) {
+		if (player_root->heurristic_val == INIT_HEURISTIC_VAL_MIN) {
+			player_root->heurristic_val = child->heurristic_val;
+			best_child = child;
+		}
+		else if (child->heurristic_val >= player_root->heurristic_val) {
 			player_root->heurristic_val = child->heurristic_val;
 			best_child = child;
 		}
@@ -318,17 +322,36 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 	buildOneLevel(root, true, depth == 1, maximizing_move);
 
 	if (root->children.empty())
-		buildhalfLevel(root);
+		buildhalfLevel(root, true, depth == 1, maximizing_move);
 
-	if (root->children.empty())
+	if (root->children.empty()) {
+		if (maximizing_move) 
+			root->heurristic_val = INIT_HEURISTIC_VAL_MIN;
+		else if (!maximizing_move)
+			root->heurristic_val = INIT_HEURISTIC_VAL_MAX;
 		return;
+	}
 
 	swapBagForDiffrentLevel(maximizing_move);
 	for (Node* child : root->children)
 	{
 		if (depth > 1)
 		{
-			alpha_beta(child, depth - 1, !maximizing_move, root->alpha, root->beta);
+			if (child->m_dice.first < child->m_dice.second) {
+				a_remainingDice[child->m_dice.first][child->m_dice.second]--;
+				bagForLevel[child->m_dice.first][child->m_dice.second]--;
+				alpha_beta(child, depth - 1, !maximizing_move, root->alpha, root->beta);
+				a_remainingDice[child->m_dice.first][child->m_dice.second]++;
+				bagForLevel[child->m_dice.first][child->m_dice.second]++;
+			}
+			else
+			{
+				a_remainingDice[child->m_dice.second][child->m_dice.first]--;
+				bagForLevel[child->m_dice.second][child->m_dice.first]--;
+				alpha_beta(child, depth - 1, !maximizing_move, root->alpha, root->beta);
+				a_remainingDice[child->m_dice.second][child->m_dice.first]++;
+				bagForLevel[child->m_dice.second][child->m_dice.first]++;
+			}
 		}
 
 		if (root->heurristic_val == INIT_HEURISTIC_VAL_MIN)
@@ -348,8 +371,7 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 		}
 
 		if (root->alpha >= root->beta) {
-			if (root->children.size())
-				root->heurristic_val = maximizing_move ? INIT_HEURISTIC_VAL_MAX : INIT_HEURISTIC_VAL_MIN;
+			root->heurristic_val = maximizing_move ? INIT_HEURISTIC_VAL_MAX : INIT_HEURISTIC_VAL_MIN;
 			if (root != player_root)
 				destroyLevel(root);
 			return;	/*prune rest of the tree*/
@@ -364,7 +386,7 @@ void Player::mini_max(Node* root, int depth, bool my_move)
 	buildOneLevel(root, false, false, false);
 
 	if (root->children.empty())
-		buildhalfLevel(root);
+		buildhalfLevel(root, false, false, false);
 
 	if (root->children.empty())
 		return;
@@ -374,9 +396,21 @@ void Player::mini_max(Node* root, int depth, bool my_move)
 	{
 		if (depth > 1)
 		{
-			//a_remainingDice[child->m_dice.first][child->m_dice.second]--;
-			mini_max(child, depth - 1, !my_move);
-			//a_remainingDice[child->m_dice.first][child->m_dice.second]++;
+			if (child->m_dice.first < child->m_dice.second) {
+				a_remainingDice[child->m_dice.first][child->m_dice.second]--;
+				bagForLevel[child->m_dice.first][child->m_dice.second]--;
+				mini_max(child, depth - 1, !my_move);
+				a_remainingDice[child->m_dice.first][child->m_dice.second]++;
+				bagForLevel[child->m_dice.first][child->m_dice.second]++;
+			}
+			else
+			{
+				a_remainingDice[child->m_dice.second][child->m_dice.first]--;
+				bagForLevel[child->m_dice.second][child->m_dice.first]--;
+				mini_max(child, depth - 1, !my_move);
+				a_remainingDice[child->m_dice.second][child->m_dice.first]++;
+				bagForLevel[child->m_dice.second][child->m_dice.first]++;
+			}
 		}
 		else  // tree leafs - use heuristics and pass values up the tree
 		{
@@ -785,15 +819,8 @@ void Player::revDubleChanges(int rev,bool* ate, int* tempBoard,int moveStart,int
 //}
 
 
-void Player::buildhalfLevel(Node* root)
-{
-	//for (int i = 0; i < 25; i++)
-	//{
-	//	boardForLevel[a_moveTransfer[i]] = root->m_board[i] * (-1);
-	//	updateNode->m_board[a_moveTransfer[i]] = root->m_board[i] * (-1);
-	//}
-	//updateNode->mdlMe = root->mdlHim;
-	
+void Player::buildhalfLevel(Node *root, bool alpha_beta, bool is_last, bool root_max_move)
+{	
 	for (int i = 1; i < 7; i++)
 	{
 		for (int j = 1; j < 7; j++)
@@ -804,24 +831,41 @@ void Player::buildhalfLevel(Node* root)
 				man->_dice = my_pair(i,j);	
 				bool x = false;
 				bool isDubel = (i == j);
-				
+				int start_child = root->children.empty() ? 0 : root->children.size();
 				if(isDubel)
 				{
-					x = !(man->val->dubelCannotMove());//player data !
-					if (x)
+					if (!(man->val->dubelCannotMove()))
 					{
 						man->turns = 4;
 						searchHalfDoubleMove(i, root);
 					}
-					
 				}
 				else
 				{
-					x = !(man->val->regCannotMove());
-					if (x)
+					if (!(man->val->regCannotMove()))
 					{
 						man->turns = 2;
 						searchHlafRegMove(my_pair(i, j) , root);
+					}
+				}
+				int end_child = root->children.size();
+				if (alpha_beta && is_last)
+				{
+					for (int i = start_child; i < end_child; i++)
+					{
+						root->children[i]->heurristic_val = man->strategy_ptr->evaluate_node(root->children[i], root_max_move);
+						if (root_max_move) {
+							if (root->children[i]->heurristic_val > root->alpha)
+								root->alpha = root->children[i]->heurristic_val;
+						}
+						else if (!root_max_move) {
+							if (root->children[i]->heurristic_val < root->beta)
+								root->beta = root->children[i]->heurristic_val;
+						}
+						if (root->alpha >= root->beta) {
+							man->val->getDataUnecessary = true;
+							return;
+						}
 					}
 				}
 				man->val->getDataUnecessary = false;

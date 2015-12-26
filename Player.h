@@ -70,7 +70,7 @@ public:
 
 	//my_pair sacrificeADice();
 
-	void buildhalfLevel(Node* root);
+	void buildhalfLevel(Node *root, bool alpha_beta, bool is_last, bool root_max_move);
 	void searchHlafRegMove( my_pair& tempDice, Node* root);
 	void searchHalfDoubleMove(int& tempDice, Node* root );
 

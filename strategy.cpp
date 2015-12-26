@@ -32,6 +32,11 @@ double strategy::evaluate_node(Node* node, bool my_move)
 	heurristic_val += houses(node);
 	heurristic_val += safe(node);
 	heurristic_val -= open(node);
+	heurristic_val += out(node);
+
+	heurristic_val -= open_inhouse(node);
+	heurristic_val -= blocked_moves(node);
+	heurristic_val -= at_enemy_house(node);
 	return heurristic_val;
 }
 
@@ -83,13 +88,14 @@ double strategy::calc_my_jailed(Node* node)
 		{
 			if (brd[i] <= -2) blocked++;
 		}
-
-		my_jail *= blocked;
 	}
 	
+	if (blocked > 4) blocked = 2;
+	else blocked = 1;
+
 	if (blocked == 6) return INFINITY_VAL;
 	
-	return my_jail * JAIL_MULTIPLIER;
+	return my_jail * blocked *JAIL_MULTIPLIER;
 }
 
 //bonus for each opponent piece in jail * number of blocked entry places
@@ -177,7 +183,8 @@ double strategy::open(Node *node)
 		}
 	}
 
-	if (blocked <= 3) blocked = 1;
+	if (blocked <= 4) blocked = 1;
+	else blocked = 2;
 
 	return result * OPEN_MULTIPLIER * blocked;
 }
@@ -194,4 +201,79 @@ double strategy::safe(Node *node)
 		if (brd[i] < 0) result = 0;
 	}
 	return result * SAFE_BONUS;
+}
+
+double strategy::out(Node *node)
+{
+	int in = 0;
+	int* brd = node->m_board;
+	assert(node != NULL);
+	for (int i = 1; i < 25; i++)
+	{
+		if (brd[i] > 0) in += brd[i];
+	}
+	in += node->mdlMe;
+	return (15 - in) * OUT_MULTIPLIER;
+}
+
+double strategy::open_inhouse(Node* node)
+{
+	int safe = 1, temp = 0, open = 0;
+	int* brd = node->m_board;
+	
+	assert(node != NULL);
+	
+	for (int i = 1; i < 25; i++)
+	{
+		if (brd[i] > 0) temp++;
+		if (brd[i] < 0 && temp > 0) safe = 0;
+	}
+
+	if (safe) return 0;
+
+	for (int i = 19; i < 25; i++)
+	{
+		if (brd[i] == 1) open++;
+	}
+
+	return open * OPEN_INHOUSE_MULTIPLIER;
+}
+
+double strategy::blocked_moves(Node* node)
+{
+	int blocked = 0, result = 0;
+	int* brd = node->m_board;
+
+	assert(node != NULL);
+
+	for (int i = 1; i < 25; i++)
+	{
+		if (brd[i] > 0)
+		{
+			for (int j = i; j < i + 7; j++)
+			{
+				if (brd[i] <= -2) blocked++;
+			}
+			if (blocked >= 3) result += blocked - 2;
+		}
+		blocked = 0;
+	}
+	return result * BLOCKED_MOVES;
+}
+
+double strategy::at_enemy_house(Node* node)
+{
+	int result = 0;
+	int* brd = node->m_board;
+
+	for (int j = 1; j < 4; j++)
+	{
+		if (brd[j] > 0) result += brd[j]*(7-j);
+	}
+
+	for (int j = 5; j < 7; j++)
+	{
+		if (brd[j] > 0) result += brd[j] * (7 - j) * 0.5;
+	}
+	return result * AT_ENEMY_HOUSE_MULTIPLIER;
 }

@@ -6,11 +6,16 @@
 
 #define MIN_POS 0
 #define MAX_POS 24
-#define JAIL_MULTIPLIER 4
+#define JAIL_MULTIPLIER 2.5
 #define SAFE_BONUS 0.5
 #define BLOCKED_BONUS 1
-#define OPEN_MULTIPLIER 15
-#define INHOUSE_BONUS 1
+#define OPEN_MULTIPLIER 2.5
+#define INHOUSE_BONUS 0.8
+#define OUT_MULTIPLIER 2000
+
+#define OPEN_INHOUSE_MULTIPLIER 3
+#define BLOCKED_MOVES 2
+#define AT_ENEMY_HOUSE_MULTIPLIER 5
 
 class Node;
 
@@ -32,6 +37,10 @@ public:
 	double strategy::houses(Node *node);
 	double strategy::safe(Node *node);
 	double strategy::open(Node *node);
+	double strategy::out(Node *node);
+	double strategy::open_inhouse(Node* node);
+	double strategy::blocked_moves(Node* node);
+	double strategy::at_enemy_house(Node* node);
 private:
 	//strategy_params _params;
 };
