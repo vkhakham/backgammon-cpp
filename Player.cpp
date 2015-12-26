@@ -348,6 +348,8 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 		}
 
 		if (root->alpha >= root->beta) {
+			if (root->children.size())
+				root->heurristic_val = root->children[root->children.size() - 1]->heurristic_val;
 			if (root != player_root)
 				destroyLevel(root);
 			return;	/*prune rest of the tree*/
