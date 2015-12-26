@@ -316,7 +316,6 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 	root->alpha = alpha; root->beta = beta;
 
 	buildOneLevel(root, true, depth == 1, maximizing_move);
-	swapBagForDiffrentLevel(maximizing_move);
 
 	if (root->children.empty())
 		buildhalfLevel(root);
@@ -324,6 +323,7 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 	if (root->children.empty())
 		return;
 
+	swapBagForDiffrentLevel(maximizing_move);
 	for (Node* child : root->children)
 	{
 		if (depth > 1)
@@ -347,7 +347,7 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 				root->beta = child->heurristic_val;
 		}
 
-		if (root->alpha > root->beta) {
+		if (root->alpha >= root->beta) {
 			if (root != player_root)
 				destroyLevel(root);
 			return;	/*prune rest of the tree*/
@@ -359,8 +359,7 @@ void Player::alpha_beta(Node* root, int depth, bool maximizing_move, double alph
 
 void Player::mini_max(Node* root, int depth, bool my_move)
 {
-	buildOneLevel(root, true, true, false);
-	swapBagForDiffrentLevel(my_move);
+	buildOneLevel(root, false, false, false);
 
 	if (root->children.empty())
 		buildhalfLevel(root);
@@ -368,6 +367,7 @@ void Player::mini_max(Node* root, int depth, bool my_move)
 	if (root->children.empty())
 		return;
 
+	swapBagForDiffrentLevel(my_move);
 	for (Node* child : root->children)
 	{
 		if (depth > 1)
@@ -441,7 +441,7 @@ void Player::buildOneLevel(Node *root, bool alpha_beta, bool is_last, bool root_
 				{
 					for (int i = start_child; i < end_child; i++)
 					{
-						root->children[i]->heurristic_val = man->strategy_ptr->evaluate_node(root->children[i], !root_max_move);
+						root->children[i]->heurristic_val = man->strategy_ptr->evaluate_node(root->children[i], root_max_move);
 						if (root_max_move) {
 							if (root->children[i]->heurristic_val > root->alpha)
 								root->alpha = root->children[i]->heurristic_val;

@@ -26,7 +26,7 @@ Manager::Manager(void)
 	fflush(stdin);
 	dice_version = 2;
 	alpha_beta = 1;
-	maxDepth = 2;
+	maxDepth = 3;
 	player2 = 0;
 	player1 = 0;
 	bIsWhiteTurn = true;
